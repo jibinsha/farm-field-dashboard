@@ -60,7 +60,7 @@ function App() {
 
   useEffect(() => {
 
-    axios.get('http://127.0.0.1:8000/days')
+    axios.get('https://farm-field-dashboard.onrender.com/days')
       .then(res => setDays(res.data))
       .catch(err => console.log(err))
 
@@ -75,7 +75,7 @@ function App() {
     if (!selectedDay) return
 
     axios.get(
-      `http://127.0.0.1:8000/teams/${selectedDay}`
+      `https://farm-field-dashboard.onrender.com/teams/${selectedDay}`
     )
       .then(res => setTeams(res.data))
       .catch(err => console.log(err))
@@ -91,13 +91,13 @@ function App() {
     if (!selectedDay || !selectedTeam) return
 
     axios.get(
-      `http://127.0.0.1:8000/farmers/${selectedDay}/${selectedTeam}`
+      `https://farm-field-dashboard.onrender.com/farmers/${selectedDay}/${selectedTeam}`
     )
       .then(res => setFarmers(res.data))
       .catch(err => console.log(err))
 
     axios.get(
-      `http://127.0.0.1:8000/route/${selectedDay}/${selectedTeam}`
+      `https://farm-field-dashboard.onrender.com/route/${selectedDay}/${selectedTeam}`
     )
       .then(res => setRoute(res.data))
       .catch(err => console.log(err))
@@ -113,7 +113,7 @@ function App() {
     try {
 
       const res = await axios.get(
-        'http://127.0.0.1:8000/progress'
+        'https://farm-field-dashboard.onrender.com/progress'
       )
 
       const completed = res.data.map(
@@ -145,7 +145,7 @@ function App() {
     try {
 
       await axios.post(
-        `http://127.0.0.1:8000/complete/${bpNumber}`
+        `https://farm-field-dashboard.onrender.com/complete/${bpNumber}`
       )
 
       loadProgress()
@@ -167,7 +167,7 @@ function App() {
     try {
 
       await axios.post(
-        `http://127.0.0.1:8000/undo/${bpNumber}`
+        `https://farm-field-dashboard.onrender.com/undo/${bpNumber}`
       )
 
       loadProgress()
@@ -352,7 +352,7 @@ function App() {
         {/* DOWNLOAD REPORT */}
 
         <a
-          href="http://127.0.0.1:8000/download-report"
+          href="https://farm-field-dashboard.onrender.com/download-report"
           target="_blank"
           rel="noreferrer"
           style={{
