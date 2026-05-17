@@ -23,7 +23,7 @@ app.add_middleware(
 # LOAD FILES
 # ---------------------------------------------------
 
-farmers_file = r"C:\Users\HAMZA P\Desktop\farm_planner\output\Final_Field_Plan.xlsx"
+farmers_file = "data/Final_Field_Plan.xlsx"
 
 routes_file = r"C:\Users\HAMZA P\Desktop\farm_planner\output\Final_Routes.xlsx"
 
