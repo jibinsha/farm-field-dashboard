@@ -12,7 +12,7 @@ import {
 import 'leaflet/dist/leaflet.css'
 
 // ---------------------------------------------------
-// AUTO ZOOM COMPONENT
+// AUTO ZOOM
 // ---------------------------------------------------
 
 function ZoomToFarmers({ farmers }) {
@@ -38,7 +38,7 @@ function ZoomToFarmers({ farmers }) {
 }
 
 // ---------------------------------------------------
-// FIX MOBILE MAP RESIZE
+// FIX MOBILE MAP
 // ---------------------------------------------------
 
 function FixMapResize() {
@@ -59,16 +59,18 @@ function FixMapResize() {
 }
 
 // ---------------------------------------------------
-// MAIN APP
+// APP
 // ---------------------------------------------------
 
 function App() {
 
   const [days, setDays] = useState([])
   const [teams, setTeams] = useState([])
+  const [villages, setVillages] = useState([])
 
   const [selectedDay, setSelectedDay] = useState('')
   const [selectedTeam, setSelectedTeam] = useState('')
+  const [selectedVillage, setSelectedVillage] = useState('All')
 
   const [farmers, setFarmers] = useState([])
   const [route, setRoute] = useState(null)
@@ -108,6 +110,22 @@ function App() {
   }, [selectedDay])
 
   // ---------------------------------------------------
+  // LOAD VILLAGES
+  // ---------------------------------------------------
+
+  useEffect(() => {
+
+    if (!selectedDay || !selectedTeam) return
+
+    axios.get(
+      `https://farm-field-dashboard.onrender.com/villages/${selectedDay}/${selectedTeam}`
+    )
+      .then(res => setVillages(res.data))
+      .catch(err => console.log(err))
+
+  }, [selectedDay, selectedTeam])
+
+  // ---------------------------------------------------
   // LOAD FARMERS + ROUTE
   // ---------------------------------------------------
 
@@ -116,7 +134,7 @@ function App() {
     if (!selectedDay || !selectedTeam) return
 
     axios.get(
-      `https://farm-field-dashboard.onrender.com/farmers/${selectedDay}/${selectedTeam}`
+      `https://farm-field-dashboard.onrender.com/farmers/${selectedDay}/${selectedTeam}?village=${selectedVillage}`
     )
       .then(res => setFarmers(res.data))
       .catch(err => console.log(err))
@@ -127,7 +145,7 @@ function App() {
       .then(res => setRoute(res.data))
       .catch(err => console.log(err))
 
-  }, [selectedDay, selectedTeam])
+  }, [selectedDay, selectedTeam, selectedVillage])
 
   // ---------------------------------------------------
   // LOAD PROGRESS
@@ -234,72 +252,45 @@ function App() {
         style={{
           background: '#1b4332',
           color: 'white',
-          padding: '20px',
-          boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
+          padding: '20px'
         }}
       >
 
-        <h1
-          style={{
-            margin: 0,
-            fontSize: '28px'
-          }}
-        >
+        <h1>
           🌿 Farm Field Dashboard
         </h1>
 
-        <p
-          style={{
-            marginTop: '6px',
-            opacity: 0.9
-          }}
-        >
-          Smart team routing and farmer management
-        </p>
-
       </div>
 
-      {/* FILTER BAR */}
+      {/* FILTERS */}
 
       <div
         style={{
-          position: 'sticky',
-          top: 0,
-          zIndex: 1000,
           background: 'white',
           padding: '15px',
           display: 'flex',
-          flexWrap: 'wrap',
           gap: '10px',
-          alignItems: 'center',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
+          flexWrap: 'wrap'
         }}
       >
 
-        {/* DAY */}
+        {/* DATE */}
 
         <select
           value={selectedDay}
           onChange={(e) => {
 
             setSelectedDay(e.target.value)
-            setSelectedTeam('')
-            setFarmers([])
-            setRoute(null)
 
-          }}
-          style={{
-            padding: '12px',
-            borderRadius: '10px',
-            border: '1px solid #dcdcdc',
-            minWidth: '150px',
-            fontSize: '15px',
-            background: '#fafafa'
+            setSelectedTeam('')
+
+            setSelectedVillage('All')
+
           }}
         >
 
           <option value=''>
-            Select Day
+            Select Date
           </option>
 
           {
@@ -309,7 +300,7 @@ function App() {
                 key={day}
                 value={day}
               >
-                Day {day}
+                {day}
               </option>
 
             ))
@@ -321,15 +312,9 @@ function App() {
 
         <select
           value={selectedTeam}
-          onChange={(e) => setSelectedTeam(e.target.value)}
-          style={{
-            padding: '12px',
-            borderRadius: '10px',
-            border: '1px solid #dcdcdc',
-            minWidth: '150px',
-            fontSize: '15px',
-            background: '#fafafa'
-          }}
+          onChange={(e) =>
+            setSelectedTeam(e.target.value)
+          }
         >
 
           <option value=''>
@@ -351,87 +336,57 @@ function App() {
 
         </select>
 
-        {/* ROUTE BUTTON */}
+        {/* VILLAGE */}
 
-        {
-          route &&
-          route.Route_Link &&
-
-          <a
-            href={route.Route_Link}
-            target='_blank'
-            rel='noreferrer'
-            style={{
-              background: '#2d6a4f',
-              color: 'white',
-              padding: '12px 20px',
-              borderRadius: '10px',
-              textDecoration: 'none',
-              fontWeight: '600'
-            }}
-          >
-            🚗 Open Route
-          </a>
-        }
-
-        {/* DOWNLOAD REPORT */}
-
-        <a
-          href="https://farm-field-dashboard.onrender.com/download-report"
-          target="_blank"
-          rel="noreferrer"
-          style={{
-            background: '#1d3557',
-            color: 'white',
-            padding: '12px 20px',
-            borderRadius: '10px',
-            textDecoration: 'none',
-            fontWeight: '600'
-          }}
+        <select
+          value={selectedVillage}
+          onChange={(e) =>
+            setSelectedVillage(e.target.value)
+          }
         >
-          📥 Download Report
-        </a>
+
+          <option value='All'>
+            All Villages
+          </option>
+
+          {
+            villages.map(village => (
+
+              <option
+                key={village}
+                value={village}
+              >
+                {village}
+              </option>
+
+            ))
+          }
+
+        </select>
 
       </div>
 
-      {/* PROGRESS CARDS */}
+      {/* COUNTS */}
 
       <div
         style={{
           display: 'flex',
           gap: '15px',
-          padding: '20px',
-          flexWrap: 'wrap'
+          padding: '20px'
         }}
       >
 
-        <div
-          style={{
-            background: '#d8f3dc',
-            padding: '15px',
-            borderRadius: '12px',
-            minWidth: '180px'
-          }}
-        >
-          <h3>✅ Completed</h3>
-          <h1>{completedCount}</h1>
+        <div>
+          ✅ Completed: {completedCount}
         </div>
 
-        <div
-          style={{
-            background: '#ffe5d9',
-            padding: '15px',
-            borderRadius: '12px',
-            minWidth: '180px'
-          }}
-        >
-          <h3>⏳ Pending</h3>
-          <h1>{pendingCount}</h1>
+        <div>
+          ⏳ Pending: {pendingCount}
         </div>
 
       </div>
 
-      {/* MAIN CONTENT */}
+      {/* MAIN */}
 
       <div
         style={{
@@ -447,30 +402,9 @@ function App() {
         }}
       >
 
-        {/* LEFT PANEL */}
+        {/* FARMERS */}
 
-        <div
-          style={{
-            background: 'white',
-            borderRadius: '16px',
-            padding: '16px',
-            boxShadow: '0 4px 14px rgba(0,0,0,0.08)'
-          }}
-        >
-
-          <h2
-            style={{
-              marginTop: 0,
-              marginBottom: '20px'
-            }}
-          >
-            📋 Assigned Farmers
-          </h2>
-
-          {
-            farmers.length === 0 &&
-            <p>No farmers loaded</p>
-          }
+        <div>
 
           {
             farmers.map((farmer, index) => {
@@ -485,143 +419,67 @@ function App() {
                 <div
                   key={index}
                   style={{
-                    border: isCompleted
-                      ? '2px solid #2d6a4f'
-                      : '1px solid #ececec',
-
-                    borderRadius: '14px',
-                    padding: '14px',
-                    marginBottom: '12px',
-
-                    background: isCompleted
-                      ? '#e9f5ee'
-                      : '#fafafa',
-
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
+                    background: 'white',
+                    padding: '15px',
+                    borderRadius: '12px',
+                    marginBottom: '10px'
                   }}
                 >
 
-                  {/* LEFT */}
+                  <h3>
+                    {farmer['Bp Number farms']}
+                  </h3>
 
-                  <div>
+                  <p>
+                    👨‍🌾 {farmer['Farmer Name']}
+                  </p>
 
-                    <div
-                      style={{
-                        fontWeight: '700',
-                        color: '#1b4332',
-                        fontSize: '15px'
-                      }}
-                    >
-                      {farmer['Bp Number farms']}
-                    </div>
+                  <p>
+                    📍 {farmer['Village']}
+                  </p>
 
-                    <div
-                      style={{
-                        marginTop: '5px',
-                        fontSize: '14px'
-                      }}
-                    >
-                      {farmer['Farmer Name']}
-                    </div>
-
-                    <div
-                      style={{
-                        marginTop: '5px',
-                        fontSize: '12px',
-                        color: '#666'
-                      }}
-                    >
-                      {farmer.Lat}, {farmer.Long}
-                    </div>
-
-                    {
-                      !isCompleted &&
-
-                      <button
-                        onClick={() =>
-                          completeFarmer(
-                            farmer['Bp Number farms']
-                          )
-                        }
-                        style={{
-                          marginTop: '10px',
-                          background: '#2d6a4f',
-                          color: 'white',
-                          border: 'none',
-                          padding: '8px 12px',
-                          borderRadius: '8px',
-                          cursor: 'pointer'
-                        }}
-                      >
-                        ✅ Complete
-                      </button>
-                    }
-
-                    {
-                      isCompleted &&
-
-                      <div
-                        style={{
-                          marginTop: '10px'
-                        }}
-                      >
-
-                        <div
-                          style={{
-                            color: '#2d6a4f',
-                            fontWeight: 'bold',
-                            marginBottom: '8px'
-                          }}
-                        >
-                          ✔ Completed
-                        </div>
-
-                        <button
-                          onClick={() =>
-                            undoComplete(
-                              farmer['Bp Number farms']
-                            )
-                          }
-                          style={{
-                            background: '#c1121f',
-                            color: 'white',
-                            border: 'none',
-                            padding: '7px 12px',
-                            borderRadius: '8px',
-                            cursor: 'pointer'
-                          }}
-                        >
-                          ↩ Undo
-                        </button>
-
-                      </div>
-                    }
-
-                  </div>
-
-                  {/* LOCATION */}
+                  <p>
+                    📞 {farmer['Phone Number']}
+                  </p>
 
                   <a
                     href={`https://www.google.com/maps?q=${farmer.Lat},${farmer.Long}`}
                     target='_blank'
                     rel='noreferrer'
-                    style={{
-                      background: '#e9f5ee',
-                      borderRadius: '12px',
-                      width: '44px',
-                      height: '44px',
-                      display: 'flex',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      textDecoration: 'none',
-                      fontSize: '20px'
-                    }}
-                    title='Open Location'
                   >
-                    🧭
+                    Open Location
                   </a>
+
+                  <br />
+                  <br />
+
+                  {
+                    !isCompleted &&
+
+                    <button
+                      onClick={() =>
+                        completeFarmer(
+                          farmer['Bp Number farms']
+                        )
+                      }
+                    >
+                      ✅ Complete
+                    </button>
+                  }
+
+                  {
+                    isCompleted &&
+
+                    <button
+                      onClick={() =>
+                        undoComplete(
+                          farmer['Bp Number farms']
+                        )
+                      }
+                    >
+                      ↩ Undo
+                    </button>
+                  }
 
                 </div>
 
@@ -632,117 +490,87 @@ function App() {
 
         </div>
 
-        {/* MAP SECTION */}
+        {/* MAP */}
 
         <div>
 
-          {/* MAP BUTTON */}
-
           <button
-            onClick={() => setShowMap(!showMap)}
-            style={{
-              background: '#1d3557',
-              color: 'white',
-              border: 'none',
-              padding: '14px 20px',
-              borderRadius: '12px',
-              cursor: 'pointer',
-              marginBottom: '15px',
-              fontWeight: '600',
-              width: '100%'
-            }}
+            onClick={() =>
+              setShowMap(!showMap)
+            }
           >
             {
               showMap
-                ? '❌ Close Map'
-                : '🗺 Open Map'
+                ? 'Close Map'
+                : 'Open Map'
             }
           </button>
 
-          {/* MAP */}
+          <br />
+          <br />
 
           {
             showMap &&
 
-            <div
+            <MapContainer
+              center={[12.2958, 75.6433]}
+              zoom={10}
               style={{
-                borderRadius: '16px',
-                overflow: 'hidden',
-                boxShadow: '0 4px 14px rgba(0,0,0,0.08)'
+                height: '80vh',
+                width: '100%'
               }}
             >
 
-              <MapContainer
-                center={[12.2958, 75.6433]}
-                zoom={10}
-                style={{
-                  height: '80vh',
-                  width: '100%'
-                }}
-              >
+              <ZoomToFarmers farmers={farmers} />
 
-                <ZoomToFarmers farmers={farmers} />
+              <FixMapResize />
 
-                <FixMapResize />
+              <TileLayer
+                attribution='Google Hybrid'
+                url='https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}'
+              />
 
-                {/* GOOGLE HYBRID SATELLITE */}
+              {
+                farmers.map((farmer, index) => (
 
-                <TileLayer
-                  attribution='Google Hybrid'
-                  url='https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}'
-                />
+                  <Marker
+                    key={index}
+                    position={[
+                      farmer.Lat,
+                      farmer.Long
+                    ]}
+                  >
 
-                {
-                  farmers.map((farmer, index) => (
+                    <Popup>
 
-                    <Marker
-                      key={index}
-                      position={[
-                        farmer.Lat,
-                        farmer.Long
-                      ]}
-                    >
+                      <div>
 
-                      <Popup>
+                        <h3>
+                          {farmer['Bp Number farms']}
+                        </h3>
 
-                        <div style={{ minWidth: '250px' }}>
+                        <p>
+                          {farmer['Farmer Name']}
+                        </p>
 
-                          <h3>
-                            {farmer['Bp Number farms']}
-                          </h3>
+                        <p>
+                          {farmer['Village']}
+                        </p>
 
-                          <hr />
+                        <p>
+                          {farmer['Phone Number']}
+                        </p>
 
-                          {
-                            Object.entries(farmer).map(([key, value]) => (
+                      </div>
 
-                              <p key={key}>
+                    </Popup>
 
-                                <strong>
-                                  {key}:
-                                </strong>
+                  </Marker>
 
-                                {' '}
+                ))
+              }
 
-                                {String(value)}
-
-                              </p>
-
-                            ))
-                          }
-
-                        </div>
-
-                      </Popup>
-
-                    </Marker>
-
-                  ))
-                }
-
-              </MapContainer>
-
-            </div>
+            </MapContainer>
           }
 
         </div>
