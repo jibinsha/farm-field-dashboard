@@ -25,7 +25,7 @@ app.add_middleware(
 
 farmers_file = "data/Final_Field_Plan.xlsx"
 
-routes_file = r"C:\Users\HAMZA P\Desktop\farm_planner\output\Final_Routes.xlsx"
+routes_file = "data/Final_Routes.xlsx"
 
 farmers_df = pd.read_excel(farmers_file)
 
