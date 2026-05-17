@@ -1,15 +1,17 @@
-from datetime import datetime
-from fastapi.responses import FileResponse
-import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+
 import pandas as pd
+import os
+
+from datetime import datetime
+
+# ---------------------------------------------------
+# APP
+# ---------------------------------------------------
 
 app = FastAPI()
-
-# ---------------------------------------------------
-# ENABLE CORS
-# ---------------------------------------------------
 
 app.add_middleware(
     CORSMiddleware,
@@ -20,70 +22,50 @@ app.add_middleware(
 )
 
 # ---------------------------------------------------
-# LOAD FILES
+# FILES
 # ---------------------------------------------------
 
 farmers_file = "data/Final_Field_Plan.xlsx"
 
 routes_file = "data/Final_Routes.xlsx"
 
+progress_file = "progress.csv"
+
+# ---------------------------------------------------
+# LOAD DATA
+# ---------------------------------------------------
+
 farmers_df = pd.read_excel(farmers_file)
 
 routes_df = pd.read_excel(routes_file)
 
-# ---------------------------------------------------
-# CLEAN DATA
-# ---------------------------------------------------
+farmers_df = farmers_df.fillna("")
 
-farmers_df['Day'] = (
-    farmers_df['Day']
-    .astype(float)
-    .astype(int)
-    .astype(str)
-)
-
-routes_df['Day'] = (
-    routes_df['Day']
-    .astype(float)
-    .astype(int)
-    .astype(str)
-)
-
-farmers_df['Team'] = (
-    farmers_df['Team']
-    .astype(str)
-    .str.strip()
-)
-
-routes_df['Team'] = (
-    routes_df['Team']
-    .astype(str)
-    .str.strip()
-)
+routes_df = routes_df.fillna("")
 
 # ---------------------------------------------------
-# HOME
+# CREATE PROGRESS FILE
 # ---------------------------------------------------
 
-@app.get("/")
-def home():
+if not os.path.exists(progress_file):
 
-    return {
-        "message": "Farm Dashboard API Running"
-    }
+    progress_df = pd.DataFrame(columns=[
+        "Bp Number farms",
+        "Status",
+        "Completed_Time"
+    ])
+
+    progress_df.to_csv(progress_file, index=False)
 
 # ---------------------------------------------------
-# GET DAYS
+# GET DATES
 # ---------------------------------------------------
 
 @app.get("/days")
 def get_days():
 
     days = sorted(
-        farmers_df['Day']
-        .astype(int)
-        .unique()
-        .tolist()
+        farmers_df['Date'].astype(str).unique().tolist()
     )
 
     return days
@@ -95,42 +77,59 @@ def get_days():
 @app.get("/teams/{day}")
 def get_teams(day: str):
 
-    # Debug print
-    print("Selected Day:", day)
-
-    # Convert safely
-    subset = farmers_df[
-        farmers_df['Day'].astype(str).str.strip()
-        ==
-        str(day).strip()
+    filtered = farmers_df[
+        farmers_df['Date'].astype(str) == str(day)
     ]
 
-    print(subset[['Day', 'Team']].head())
-
-    teams = (
-        subset['Team']
-        .astype(str)
-        .str.strip()
-        .unique()
-        .tolist()
+    teams = sorted(
+        filtered['Team'].astype(str).unique().tolist()
     )
 
     return teams
+
+# ---------------------------------------------------
+# GET VILLAGES
+# ---------------------------------------------------
+
+@app.get("/villages/{day}/{team}")
+def get_villages(day: str, team: str):
+
+    filtered = farmers_df[
+        (farmers_df['Date'].astype(str) == str(day))
+        &
+        (farmers_df['Team'].astype(str) == str(team))
+    ]
+
+    villages = sorted(
+        filtered['Village'].astype(str).unique().tolist()
+    )
+
+    return villages
 
 # ---------------------------------------------------
 # GET FARMERS
 # ---------------------------------------------------
 
 @app.get("/farmers/{day}/{team}")
-def get_farmers(day: str, team: str):
+def get_farmers(
+    day: str,
+    team: str,
+    village: str = None
+):
 
-    subset = farmers_df[
-        (farmers_df['Day'] == str(day))
+    filtered = farmers_df[
+        (farmers_df['Date'].astype(str) == str(day))
         &
-        (farmers_df['Team'] == str(team))
+        (farmers_df['Team'].astype(str) == str(team))
     ]
 
-    return subset.to_dict(
+    if village and village != "All":
+
+        filtered = filtered[
+            filtered['Village'] == village
+        ]
+
+    return filtered.to_dict(
         orient='records'
     )
 
@@ -141,32 +140,17 @@ def get_farmers(day: str, team: str):
 @app.get("/route/{day}/{team}")
 def get_route(day: str, team: str):
 
-    subset = routes_df[
-        (routes_df['Day'] == str(day))
+    filtered = routes_df[
+        (routes_df['Date'].astype(str) == str(day))
         &
-        (routes_df['Team'] == str(team))
+        (routes_df['Team'].astype(str) == str(team))
     ]
 
-    if len(subset) == 0:
+    if len(filtered) == 0:
+
         return {}
 
-    return subset.iloc[0].to_dict()
-# ---------------------------------------------------
-# PROGRESS FILE
-# ---------------------------------------------------
-
-progress_file = "progress.csv"
-
-# Create file if not exists
-if not os.path.exists(progress_file):
-
-    progress_df = pd.DataFrame(columns=[
-        "Bp Number farms",
-        "Status",
-        "Completed_Time"
-    ])
-
-    progress_df.to_csv(progress_file, index=False)
+    return filtered.iloc[0].to_dict()
 
 # ---------------------------------------------------
 # COMPLETE FARMER
@@ -181,12 +165,12 @@ def complete_farmer(bp_number: str):
         "%Y-%m-%d %H:%M:%S"
     )
 
-    # Remove existing record
     progress_df = progress_df[
-        progress_df['Bp Number farms'] != bp_number
+        progress_df['Bp Number farms']
+        !=
+        bp_number
     ]
 
-    # Add completed row
     new_row = pd.DataFrame([{
         "Bp Number farms": bp_number,
         "Status": "Completed",
@@ -206,6 +190,7 @@ def complete_farmer(bp_number: str):
     return {
         "message": "Farmer marked completed"
     }
+
 # ---------------------------------------------------
 # UNDO COMPLETE
 # ---------------------------------------------------
@@ -229,6 +214,7 @@ def undo_complete(bp_number: str):
     return {
         "message": "Completion removed"
     }
+
 # ---------------------------------------------------
 # GET PROGRESS
 # ---------------------------------------------------
