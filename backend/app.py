@@ -25,9 +25,9 @@ app.add_middleware(
 # FILES
 # ---------------------------------------------------
 
-farmers_file = "Final_Field_Plan1.xlsx"
+farmers_file = "data/Final_Field_Plan.xlsx"
 
-routes_file = "Final_Routes1.xlsx"
+routes_file = "data/Final_Routes.xlsx"
 
 progress_file = "progress.csv"
 
@@ -42,20 +42,6 @@ routes_df = pd.read_excel(routes_file)
 farmers_df = farmers_df.fillna("")
 
 routes_df = routes_df.fillna("")
-
-# ---------------------------------------------------
-# CONVERT DATES
-# ---------------------------------------------------
-
-farmers_df['Date'] = pd.to_datetime(
-    farmers_df['Date'],
-    errors='coerce'
-)
-
-routes_df['Date'] = pd.to_datetime(
-    routes_df['Date'],
-    errors='coerce'
-)
 
 # ---------------------------------------------------
 # CREATE PROGRESS FILE
@@ -78,6 +64,13 @@ if not os.path.exists(progress_file):
 @app.get("/days")
 def get_days():
 
+    # Convert to datetime for proper sorting
+    farmers_df['Date'] = pd.to_datetime(
+        farmers_df['Date'],
+        errors='coerce'
+    )
+
+    # Sort dates properly
     sorted_dates = farmers_df['Date'] \
         .dropna() \
         .sort_values() \
@@ -94,6 +87,7 @@ def get_days():
 @app.get("/teams/{day}")
 def get_teams(day: str):
 
+    # Convert incoming string to datetime
     selected_date = pd.to_datetime(
         day,
         format='%d-%m-%Y',
@@ -171,14 +165,8 @@ def get_farmers(day: str, team: str):
 @app.get("/route/{day}/{team}")
 def get_route(day: str, team: str):
 
-    selected_date = pd.to_datetime(
-        day,
-        format='%d-%m-%Y',
-        errors='coerce'
-    )
-
     filtered = routes_df[
-        (routes_df['Date'] == selected_date)
+        (routes_df['Date'].astype(str) == str(day))
         &
         (routes_df['Team'].astype(str) == str(team))
     ]
@@ -274,18 +262,50 @@ def download_report():
 
     progress_df = pd.read_csv(progress_file)
 
+    # Remove duplicates if any
+    progress_df = progress_df.drop_duplicates(
+        subset=['Bp Number farms'],
+        keep='last'
+    )
+
+    # Merge with all farmer data
     merged = farmers_df.merge(
         progress_df,
         on="Bp Number farms",
         how="left"
     )
 
+    # Fill pending status
     merged['Status'] = merged['Status'].fillna(
         "Pending"
     )
 
+    merged['Completed_Time'] = merged[
+        'Completed_Time'
+    ].fillna("")
+
+    # Sort report
+    sort_columns = []
+
+    if 'Date' in merged.columns:
+        sort_columns.append('Date')
+
+    if 'Team' in merged.columns:
+        sort_columns.append('Team')
+
+    if 'village' in merged.columns:
+        sort_columns.append('village')
+
+    if len(sort_columns) > 0:
+
+        merged = merged.sort_values(
+            by=sort_columns
+        )
+
+    # Output file
     output_file = "Daily_Progress_Report.xlsx"
 
+    # Save Excel
     merged.to_excel(
         output_file,
         index=False
