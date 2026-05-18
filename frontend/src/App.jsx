@@ -322,9 +322,7 @@ function App() {
             padding: '12px',
             borderRadius: '12px',
             border: '1px solid #dcdcdc',
-            minWidth: '150px',
-            fontSize: '15px',
-            background: '#fafafa'
+            minWidth: '150px'
           }}
         >
 
@@ -358,9 +356,7 @@ function App() {
             padding: '12px',
             borderRadius: '12px',
             border: '1px solid #dcdcdc',
-            minWidth: '150px',
-            fontSize: '15px',
-            background: '#fafafa'
+            minWidth: '150px'
           }}
         >
 
@@ -445,7 +441,7 @@ function App() {
 
       </div>
 
-      {/* MAIN CONTENT */}
+      {/* MAIN */}
 
       <div
         style={{
@@ -482,13 +478,6 @@ function App() {
           </h2>
 
           {
-            farmers.length === 0 &&
-            <p>No farmers loaded</p>
-          }
-
-          {/* FARMER CARDS */}
-
-          {
             farmers.map((farmer, index) => {
 
               const isCompleted =
@@ -506,13 +495,9 @@ function App() {
                       : '1px solid #e8ecef',
 
                     borderRadius: '24px',
-
                     padding: '20px',
-
                     marginBottom: '18px',
-
                     background: '#ffffff',
-
                     boxShadow:
                       '0 6px 18px rgba(0,0,0,0.06)'
                   }}
@@ -541,6 +526,39 @@ function App() {
                     }}
                   >
                     {farmer['Farmer Name']}
+                  </div>
+
+                  {/* VILLAGE */}
+
+                  <div
+                    style={{
+                      marginTop: '10px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px'
+                    }}
+                  >
+
+                    <img
+                      src="https://cdn-icons-png.flaticon.com/512/684/684908.png"
+                      alt="village"
+                      style={{
+                        width: '16px',
+                        height: '16px',
+                        opacity: 0.8
+                      }}
+                    />
+
+                    <div
+                      style={{
+                        color: '#555',
+                        fontSize: '14px',
+                        fontWeight: '500'
+                      }}
+                    >
+                      {farmer['village']}
+                    </div>
+
                   </div>
 
                   {/* PHONE */}
@@ -576,37 +594,78 @@ function App() {
 
                   </div>
 
-                  {/* SEE MORE */}
+                  {/* SEE MORE + LOCATION */}
 
-                  <button
-                    onClick={() => {
-
-                      setExpandedFarmer(
-                        expandedFarmer === index
-                          ? null
-                          : index
-                      )
-
-                    }}
+                  <div
                     style={{
                       marginTop: '20px',
-                      background: '#f1f5f3',
-                      border: '1px solid #dbe7df',
-                      padding: '12px 16px',
-                      borderRadius: '12px',
-                      cursor: 'pointer',
-                      fontWeight: '600',
-                      color: '#1b4332',
-                      fontSize: '14px',
-                      width: '100%'
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '12px'
                     }}
                   >
-                    {
-                      expandedFarmer === index
-                        ? '▲ Hide Details'
-                        : '▼ See More'
-                    }
-                  </button>
+
+                    {/* SEE MORE */}
+
+                    <button
+                      onClick={() => {
+
+                        setExpandedFarmer(
+                          expandedFarmer === index
+                            ? null
+                            : index
+                        )
+
+                      }}
+                      style={{
+                        flex: 1,
+                        background: '#f1f5f3',
+                        border: '1px solid #dbe7df',
+                        padding: '12px 16px',
+                        borderRadius: '12px',
+                        cursor: 'pointer',
+                        fontWeight: '600',
+                        color: '#1b4332',
+                        fontSize: '14px'
+                      }}
+                    >
+                      {
+                        expandedFarmer === index
+                          ? '▲ Hide Details'
+                          : '▼ See More'
+                      }
+                    </button>
+
+                    {/* LOCATION */}
+
+                    <a
+                      href={`https://www.google.com/maps?q=${farmer.Lat},${farmer.Long}`}
+                      target='_blank'
+                      rel='noreferrer'
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        background: '#edf6f1',
+                        width: '50px',
+                        height: '50px',
+                        borderRadius: '14px',
+                        flexShrink: 0
+                      }}
+                    >
+
+                      <img
+                        src="https://cdn-icons-png.flaticon.com/512/2991/2991231.png"
+                        alt="maps"
+                        style={{
+                          width: '26px',
+                          height: '26px'
+                        }}
+                      />
+
+                    </a>
+
+                  </div>
 
                   {/* DETAILS */}
 
@@ -663,36 +722,7 @@ function App() {
                     </div>
                   }
 
-                  {/* MAP BUTTON */}
-
-                  <a
-                    href={`https://www.google.com/maps?q=${farmer.Lat},${farmer.Long}`}
-                    target='_blank'
-                    rel='noreferrer'
-                    style={{
-                      marginTop: '18px',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      background: '#edf6f1',
-                      width: '60px',
-                      height: '60px',
-                      borderRadius: '16px'
-                    }}
-                  >
-
-                    <img
-                      src="https://cdn-icons-png.flaticon.com/512/2991/2991231.png"
-                      alt="maps"
-                      style={{
-                        width: '32px',
-                        height: '32px'
-                      }}
-                    />
-
-                  </a>
-
-                  {/* ACTION BUTTON */}
+                  {/* ACTION */}
 
                   <div
                     style={{
@@ -761,7 +791,7 @@ function App() {
 
         </div>
 
-        {/* MAP SECTION */}
+        {/* MAP */}
 
         <div>
 
