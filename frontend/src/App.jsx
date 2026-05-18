@@ -543,6 +543,39 @@ function App() {
                     {farmer['Farmer Name']}
                   </div>
 
+                  {/* PHONE */}
+
+                  <div
+                    style={{
+                      marginTop: '18px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '10px'
+                    }}
+                  >
+
+                    <img
+                      src="https://cdn-icons-png.flaticon.com/512/724/724664.png"
+                      alt="phone"
+                      style={{
+                        width: '18px',
+                        height: '18px'
+                      }}
+                    />
+
+                    <a
+                      href={`tel:${farmer['phone number']}`}
+                      style={{
+                        textDecoration: 'none',
+                        color: '#444',
+                        fontWeight: '500'
+                      }}
+                    >
+                      {farmer['phone number']}
+                    </a>
+
+                  </div>
+
                   {/* SEE MORE */}
 
                   <button
