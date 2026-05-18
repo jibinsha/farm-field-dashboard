@@ -402,6 +402,24 @@ function App() {
           </a>
         }
 
+        {/* DOWNLOAD REPORT */}
+
+        <a
+          href="https://farm-field-dashboard.onrender.com/download-report"
+          target="_blank"
+          rel="noreferrer"
+          style={{
+            background: '#1d3557',
+            color: 'white',
+            padding: '12px 20px',
+            borderRadius: '12px',
+            textDecoration: 'none',
+            fontWeight: '700'
+          }}
+        >
+          📥 Download Report
+        </a>
+
       </div>
 
       {/* PROGRESS */}
@@ -605,8 +623,6 @@ function App() {
                     }}
                   >
 
-                    {/* SEE MORE */}
-
                     <button
                       onClick={() => {
 
@@ -635,8 +651,6 @@ function App() {
                           : '▼ See More'
                       }
                     </button>
-
-                    {/* LOCATION */}
 
                     <a
                       href={`https://www.google.com/maps?q=${farmer.Lat},${farmer.Long}`}
